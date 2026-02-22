@@ -1,7 +1,7 @@
 import sys
 from pathlib import Path
 
-from Scanner import Scanner
+from src.scanner import Scanner
 
 had_err = False
 
