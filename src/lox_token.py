@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Any
-from src.token_type import TokenType
+from token_type import TokenType
 
 # we use @dataclass for classes that only hold data and frozen=true 
 # acts like final key work in java i.e variables defined here are imutable 

@@ -1,9 +1,10 @@
 import sys
 from pathlib import Path
 
-from src.scanner import Scanner
+from lox_scanner import Scanner
+import error_handler
 
-had_err = False
+had_err = error_handler.had_error
 
 # interprete from file
 def run_file(path):
@@ -46,17 +47,6 @@ def run(source):
 
     for token in tokens:
         print(token)
-
-# some error functions 
-def error(line_no, message):
-    report(line_no, "", message)
-
-def report(line_no, where, message):
-    global had_err 
-
-    # using file=sys.stderr redirects our output to err stream rather than general output stream
-    print(f"[line {line_no}] error{where}: {message}", file=sys.stderr)
-    had_err = True
 
 def main():
     args = sys.argv[1:] # argv[0] is script name so we ignore it
