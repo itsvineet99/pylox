@@ -4,10 +4,16 @@ from pathlib import Path
 def define_ast(output_dir, base_name, types):
     file_path = Path(f"{output_dir}/{base_name}.py")
     with open(file_path, "w", encoding="utf-8") as file:
-        file.write("from dataclasses import dataclass\n"
+        file.write("from abc import ABC, abstractmethod\n"
+                   "from dataclasses import dataclass\n"
                    "from typing import Any\n"
                    "from lox_token import Token\n\n")
-        file.write(f"class {base_name}:\n    pass\n\n")
+        define_visitor(file, base_name, types)
+        file.write(f"class {base_name}(ABC):\n")
+        file.write(f"    @abstractmethod\n")
+        file.write(f"    def accept(self, visitor: Visitor) -> Any:\n")
+        file.write(f"        pass\n\n")
+
 
         for typ in types:
             class_name = typ.split(":")[0].strip()
@@ -22,8 +28,19 @@ def define_type(file, base_name, class_name, field_list):
     for field in fields:
         name = field.split(" ")[0]
         typ = field.split(" ")[1]
-        file.write(f"   {name}: {typ}\n")
+        file.write(f"    {name}: {typ}\n")
     file.write("\n")
+    file.write(f"    def accept(self, visitor: Visitor) -> Any:\n")
+    file.write(f"        return visitor.visit_{class_name.lower()}_{base_name.lower()}(self)\n\n")
+
+def define_visitor(file, base_name, types):
+    file.write(f"class Visitor(ABC):\n")
+    for typ in types:
+        class_name = typ.split(":")[0].strip()
+        file.write(f"    @abstractmethod\n")
+        file.write(f"    def visit_{class_name.lower()}_{base_name.lower()}(self, {base_name.lower()}: '{class_name}') -> Any:\n")
+        file.write(f"        pass\n\n")
+
 
 def main():
     args = sys.argv[1:]
