@@ -2,7 +2,7 @@ jlox is an tree-walk interpreter written in java for custom built language lox. 
 
 in this repository i re-implemnt jlox in python. the purpose of doing so is to exercise my **free will**.
 
-> given instructions are only to use lexer for current implementation (in future all will change)
+> this is temporary readme for implementation in development (in future all will change).
 
 quick way to use (REPL version):
 
@@ -18,10 +18,12 @@ once inside `src`, type given command:
 python lox.py
 ```
 
-after typing above command you can use REPL. here you can enter correct or incorrect code in lox language and our lexer will tokenize it. 
+after typing above command you can use REPL. here you can enter sequence of expressions caues rn we only support expressions.
+
+eg. `4 + 54 * (47 - 9) / 2 + 9`
 
 press ctr+D to quit out of REPL version.
 
 given is visual example:
 
-![example.png](https://i.ibb.co/MkDFg9m8/image.png)
+![example.png](https://i.ibb.co/WWHcKDwM/image.png)
