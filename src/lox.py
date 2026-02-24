@@ -2,9 +2,12 @@ import sys
 from pathlib import Path
 
 from lox_scanner import Scanner
-import error_handler
+from parser import Parser
+from ast_printer import AstPrinter
+from error_handler import Lox
 
-had_err = error_handler.had_error
+
+had_err = Lox.had_error
 
 # interprete from file
 def run_file(path):
@@ -44,9 +47,13 @@ def run_prompt():
 def run(source):
     scanner = Scanner(source)
     tokens = scanner.scan_tokens()
+    parser = Parser(tokens)
+    expression = parser.parse()
 
-    for token in tokens:
-        print(token)
+    if had_err:
+        return
+    
+    print(AstPrinter().print(expression))
 
 def main():
     args = sys.argv[1:] # argv[0] is script name so we ignore it
