@@ -1,6 +1,6 @@
 from token_type import TokenType
 from lox_token import Token
-import error_handler
+from error_handler import Lox
 
 # all keywords in lox
 KEYWORDS = {
@@ -99,7 +99,7 @@ class Scanner:
                 elif self.is_alpha(char):
                     self.identifier()
                 else:
-                    error_handler.error(self.line, "Unexpected character.")
+                    Lox.error(self.line, "Unexpected character.")
 
     def advance(self):
         self.current += 1
@@ -130,7 +130,7 @@ class Scanner:
             self.advance()
 
         if self.is_at_end():
-            error_handler.error(self.line, "Unterminated string.")
+            Lox.error(self.line, "Unterminated string.")
             return
         
         self.advance()
