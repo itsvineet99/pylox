@@ -1,17 +1,30 @@
 import sys
+from lox_token import Token, TokenType 
 
 # separate file for error handling cause the original method was causing 
 # cirucular error import 
 
-had_error = False
+class Lox:
+    had_error = False
 
-def error(line_no, message):
-    report(line_no, "", message)
+    @classmethod
+    def error(cls, target, message: str):
+        """
+        'target' can be either a line number (int) or a Token object.
+        """
+        if isinstance(target, int):
+            # Handles: def error(line_no: int, message: str)
+            cls.report(target, "", message)
+            
+        elif hasattr(target, Token): 
+            # Handles: def error(token Token, message: str)
+            if target.type == TokenType.EOF:
+                cls.report(target.line_no, " at end", message)
+            else:
+                cls.report(target.line_no, f" at '{target.lexeme}'", message)
 
-def report(line_no, where, message):
-    global had_err 
-
-    # using file=sys.stderr redirects our output to err stream rather than general output stream
-    print(f"[line {line_no}] error{where}: {message}", file=sys.stderr)
-    had_err = True
-
+    @classmethod
+    def report(cls, line: int, where: str, message: str):
+        # file=sys.stderr prints this to the standard error stream
+        print(f"[line {line}] Error{where}: {message}", file=sys.stderr)
+        cls.had_error = True
