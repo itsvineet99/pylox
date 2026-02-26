@@ -26,4 +26,4 @@ press ctr+D to quit out of REPL version.
 
 given is visual example:
 
-![example.png](https://i.ibb.co/WWHcKDwM/image.png)
+![example.png](https://i.ibb.co/s9w6gJ0P/image.png)
