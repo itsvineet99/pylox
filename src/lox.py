@@ -50,12 +50,12 @@ def run(source):
     scanner = Scanner(source)
     tokens = scanner.scan_tokens()
     parser = Parser(tokens)
-    expression = parser.parse()
+    statements = parser.parse()
 
     if Lox.had_error:
         return
     
-    interpretor.interpret(expression)
+    interpretor.interpret(statements)
 
 def main():
     args = sys.argv[1:] # argv[0] is script name so we ignore it

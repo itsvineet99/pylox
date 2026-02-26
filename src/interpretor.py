@@ -77,6 +77,13 @@ class Interpretor(VisitorExpr, VisitorStmt):
                 self.check_number_operands(expr.operator, left, right)
                 return float(left) * float(right)
 
+    def visit_expression_stmt(self, stmt) -> None:
+        self.evaluate(stmt.expression)
+        return None
+    
+    def visit_print_stmt(self, stmt) -> None:
+        value = self.evaluate(stmt.expression)
+        print(self.stringify(value))
 
     
     # this is a helper method which simply sends the expression back into the
@@ -118,12 +125,15 @@ class Interpretor(VisitorExpr, VisitorStmt):
             return text
         
         return str(value)
+    
+    def execute(self, stmt: Stmt):
+        stmt.accept(self)
 
     # API to use by other programs.
-    def interpret(self, expr):
+    def interpret(self, statements):
         try:
-            value = self.evaluate(expr)
-            print(self.stringify(value))
+            for statement in statements:
+                self.execute(statement)
         except LoxRuntimeError as error:
             Lox.runtime_error(error)
             
