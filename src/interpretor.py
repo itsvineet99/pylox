@@ -1,9 +1,11 @@
 from Expr import *
+from stmt import *
 from token_type import TokenType
 from lox_runtime_error import LoxRuntimeError
 from error_handler import Lox
 
-class Interpretor(Visitor):
+
+class Interpretor(VisitorExpr, VisitorStmt):
 
     def visit_literal_expr(self, expr: Literal):
         return expr.value

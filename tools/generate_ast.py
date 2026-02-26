@@ -2,7 +2,7 @@ import sys
 from pathlib import Path
 
 def define_ast(output_dir, base_name, types):
-    file_path = Path(f"{output_dir}/{base_name}.py")
+    file_path = Path(f"{output_dir}/{base_name.lower()}.py")
     with open(file_path, "w", encoding="utf-8") as file:
         file.write("from abc import ABC, abstractmethod\n"
                    "from dataclasses import dataclass\n"
@@ -11,7 +11,7 @@ def define_ast(output_dir, base_name, types):
         define_visitor(file, base_name, types)
         file.write(f"class {base_name}(ABC):\n")
         file.write(f"    @abstractmethod\n")
-        file.write(f"    def accept(self, visitor: Visitor) -> Any:\n")
+        file.write(f"    def accept(self, visitor: Visitor{base_name}) -> Any:\n")
         file.write(f"        pass\n\n")
 
 
@@ -30,11 +30,11 @@ def define_type(file, base_name, class_name, field_list):
         typ = field.split(" ")[1]
         file.write(f"    {name}: {typ}\n")
     file.write("\n")
-    file.write(f"    def accept(self, visitor: Visitor) -> Any:\n")
+    file.write(f"    def accept(self, visitor: Visitor{base_name}) -> Any:\n")
     file.write(f"        return visitor.visit_{class_name.lower()}_{base_name.lower()}(self)\n\n")
 
 def define_visitor(file, base_name, types):
-    file.write(f"class Visitor(ABC):\n")
+    file.write(f"class Visitor{base_name}(ABC):\n")
     for typ in types:
         class_name = typ.split(":")[0].strip()
         file.write(f"    @abstractmethod\n")
@@ -56,6 +56,11 @@ def main():
                  "Unary    : operator Token, right Expr"]
         
         define_ast(output_dir, base_name, types)
+
+        define_ast(output_dir, "Stmt", [
+            "Expression : expression Expr",
+            "Print      : expression Expr"
+        ])
 
 if __name__ == "__main__": 
     main()
