@@ -3,7 +3,6 @@ from token_type import TokenType
 from lox_runtime_error import LoxRuntimeError
 from error_handler import Lox
 
-RuntimeError
 class Interpretor(Visitor):
 
     def visit_literal_expr(self, expr: Literal):
@@ -31,15 +30,24 @@ class Interpretor(Visitor):
 
         match expr.operator.token_type:
             case TokenType.GREATER:
+                # comapres string by their length
+                if isinstance(left, str) and isinstance(right, str):
+                    return len(left) > len(right)
                 self.check_number_operands(expr.operator, left, right)
                 return float(left) > float(right)
             case TokenType.GREATER_EQUAL:
+                if isinstance(left, str) and isinstance(right, str):
+                    return len(left) >= len(right)
                 self.check_number_operands(expr.operator, left, right)
                 return float(left) >= float(right)
             case TokenType.LESS:
+                if isinstance(left, str) and isinstance(right, str):
+                    return len(left) < len(right)
                 self.check_number_operands(expr.operator, left, right)
                 return float(left) < float(right)
             case TokenType.LESS_EQUAL:
+                if isinstance(left, str) and isinstance(right, str):
+                    return len(left) <= len(right)
                 self.check_number_operands(expr.operator, left, right)
                 return float(left) <= float(right)
             
@@ -54,11 +62,14 @@ class Interpretor(Visitor):
             case TokenType.PLUS:
                 if isinstance(left, float) and isinstance(right, float):
                     return left + right
-                if isinstance(left, str) and isinstance(right, str):
-                    return left + right
-                raise LoxRuntimeError(expr.operator, "Operands must be two numbers or two strings.")
+                if isinstance(left, str) or isinstance(right, str):
+                    return self.stringify(left) + self.stringify(right)
+                raise LoxRuntimeError(expr.operator, "Operands must be numbers or strings.")
             case TokenType.SLASH:
                 self.check_number_operands(expr.operator, left, right)
+                # case: when we try to divide by 0.
+                if right == 0:
+                    raise LoxRuntimeError(expr.operator, "Learn your math dawg! you can't be dividing a number by 0.")
                 return float(left) / float(right)
             case TokenType.STAR:
                 self.check_number_operands(expr.operator, left, right)
