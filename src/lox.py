@@ -5,13 +5,13 @@ from lox_scanner import Scanner
 from parser import Parser
 from ast_printer import AstPrinter
 from error_handler import Lox
+from interpretor import Interpretor
 
-
-had_err = Lox.had_error
+# initializing interpretor globally so we can use the same object, when each REPL loop resets.
+interpretor = Interpretor()
 
 # interprete from file
 def run_file(path):
-    global had_err # letting know the function that we are using global variable
 
     file_path = Path(path)
 
@@ -20,8 +20,11 @@ def run_file(path):
             source = file.read()
         run(source)
 
-        if had_err:
+        if Lox.had_error:
             sys.exit(65)
+
+        if Lox.had_runtime_error:
+            sys.exit(70)
         
     except FileNotFoundError: # Catching the specific error
         print(f"Error: Could not find the file '{path}'.")
@@ -31,13 +34,12 @@ def run_file(path):
 
 # REPL (Read-Eval-Print Loop), in short reading from terminal directly
 def run_prompt():
-    global had_err
     
     while True:
         try:
             line = input("> ")
             run(line)
-            had_err = False
+            Lox.had_error = False
         except EOFError:
             # This triggers when the user presses Ctrl+D (Mac/Linux) or Ctrl+Z (Windows)
             print() 
@@ -50,10 +52,10 @@ def run(source):
     parser = Parser(tokens)
     expression = parser.parse()
 
-    if had_err:
+    if Lox.had_error:
         return
     
-    print(AstPrinter().print(expression))
+    interpretor.interpret(expression)
 
 def main():
     args = sys.argv[1:] # argv[0] is script name so we ignore it

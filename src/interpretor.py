@@ -1,6 +1,7 @@
 from Expr import *
 from token_type import TokenType
 from lox_runtime_error import LoxRuntimeError
+from error_handler import Lox
 
 RuntimeError
 class Interpretor(Visitor):
@@ -9,7 +10,7 @@ class Interpretor(Visitor):
         return expr.value
     
     def visit_grouping_expr(self, expr: Grouping):
-        return self.evaluate(expr.expression())
+        return self.evaluate(expr.expression)
     
     def visit_unary_expr(self, expr: Unary):
         right = self.evaluate(expr.right)
@@ -89,3 +90,27 @@ class Interpretor(Visitor):
         if isinstance(left, float) and isinstance(right, float):
             return
         raise LoxRuntimeError(operator, "Operands must be numbers.")
+    
+    def stringify(self, value):
+        if value is None:
+            return "nil"
+        
+        if isinstance(value, bool):
+            return str(value).lower()
+        
+        if isinstance(value, float):
+            text = str(value)
+            if text.endswith(".0"):
+                text = text[:-2]
+            return text
+        
+        return str(value)
+
+    # API to use by other programs.
+    def interpret(self, expr):
+        try:
+            value = self.evaluate(expr)
+            print(self.stringify(value))
+        except LoxRuntimeError as error:
+            Lox.runtime_error(error)
+            
