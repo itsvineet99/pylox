@@ -164,10 +164,18 @@ class Interpreter(VisitorExpr, VisitorStmt):
 
 
     # API to use by other programs.
-    def interpret(self, statements):
+    def interpret(self, syntax):
         try:
-            for statement in statements:
-                self.execute(statement)
+            if isinstance(syntax, list):
+                # when we are giving input as list of statements 
+                for statement in syntax:
+                    self.execute(statement)
+            else:
+                # when we are giving input as expression (REPL interactive execution)
+                value = self.evaluate(syntax)
+                return self.stringify(value)
+                
         except LoxRuntimeError as error:
             Lox.runtime_error(error)
+            return None
             

@@ -11,6 +11,10 @@ class Parser:
 
         self.current = 0
 
+        # allowing REPL to execute expressions directly
+        self.allow_expr = False
+        self.found_expr = False
+
     def parse(self):
         statements = []
         while not self.is_at_end():
@@ -168,7 +172,11 @@ class Parser:
 
     def expression_statement(self):
         expr = self.expression()
-        self.consume(TokenType.SEMICOLON, "Expect ';' after expression.")
+        # for evaluating raw expressions
+        if self.allow_expr and self.is_at_end():
+            self.found_expr = True
+        else:
+            self.consume(TokenType.SEMICOLON, "Expect ';' after expression.")
         return Expression(expr)
     
     def declaration(self):
@@ -197,6 +205,20 @@ class Parser:
             statements.append(self.declaration())
 
         self.consume(TokenType.RIGHT_BRACE, "Expect '}' after block.")
+        return statements
+    
+    # a parse method to use in REPL so we can easily evaluate raw expressions.
+    def parse_repl(self):
+        self.allow_expr = True
+        statements = []
+        while not self.is_at_end():
+            statements.append(self.declaration())
+
+            if self.found_expr:
+                last = statements[-1]
+                return last.expression
+            self.allow_expr = False
+        
         return statements
 
 class ParseError(RuntimeError):

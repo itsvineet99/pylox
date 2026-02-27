@@ -3,9 +3,9 @@ from pathlib import Path
 
 from lox_scanner import Scanner
 from parser import Parser
-from ast_printer import AstPrinter
 from error_handler import Lox
 from interpreter import Interpreter
+from Expr import *
 
 # initializing interpretor globally so we can use the same object, when each REPL loop resets.
 interpreter = Interpreter()
@@ -34,17 +34,31 @@ def run_file(path):
 
 # REPL (Read-Eval-Print Loop), in short reading from terminal directly
 def run_prompt():
-    
     while True:
         try:
             line = input("> ")
-            run(line)
             Lox.had_error = False
+            
+            scanner = Scanner(line)
+            tokens = scanner.scan_tokens()
+            parser = Parser(tokens)
+            syntax = parser.parse_repl()
+
+            if Lox.had_error:
+                continue # ignore errors
+            
+            # when code is statement.
+            if isinstance(syntax, list):
+                interpreter.interpret(syntax)
+            # when code is expression
+            elif isinstance(syntax, Expr):
+                result = interpreter.interpret(syntax)
+                if result is not None:
+                    print(f"= {result}")
         except EOFError:
             # This triggers when the user presses Ctrl+D (Mac/Linux) or Ctrl+Z (Windows)
             print() 
             break
-
 
 def run(source):
     scanner = Scanner(source)
