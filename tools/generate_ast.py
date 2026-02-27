@@ -49,17 +49,21 @@ def main():
         sys.exit(64)
     else:
         output_dir = args[0]
-        base_name = "Expr"
-        types = ["Binary   : left Expr, operator Token, right Expr",
-                 "Grouping : expression Expr",
-                 "Literal  : value Any",
-                 "Unary    : operator Token, right Expr"]
         
-        define_ast(output_dir, base_name, types)
+        define_ast(output_dir, "Expr", [
+                   "Assign   : name Token, value Expr",
+                   "Binary   : left Expr, operator Token, right Expr",
+                   "Grouping : expression Expr",
+                   "Literal  : value Any",
+                   "Unary    : operator Token, right Expr",
+                   "Variable : name Token"
+                   ])
 
         define_ast(output_dir, "Stmt", [
+            "Block : statements list[Stmt]",
             "Expression : expression Expr",
-            "Print      : expression Expr"
+            "Print      : expression Expr",
+            "Var : name Token, initializer Expr"
         ])
 
 if __name__ == "__main__": 

@@ -1,7 +1,7 @@
 from Expr import *
 from token_type import TokenType
 
-class AstPrinter(Visitor):
+class AstPrinter(VisitorExpr):
     def print(self, expr: Expr):
         return expr.accept(self)
     

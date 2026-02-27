@@ -5,6 +5,10 @@ from lox_token import Token
 
 class VisitorExpr(ABC):
     @abstractmethod
+    def visit_assign_expr(self, expr: 'Assign') -> Any:
+        pass
+
+    @abstractmethod
     def visit_binary_expr(self, expr: 'Binary') -> Any:
         pass
 
@@ -20,10 +24,22 @@ class VisitorExpr(ABC):
     def visit_unary_expr(self, expr: 'Unary') -> Any:
         pass
 
+    @abstractmethod
+    def visit_variable_expr(self, expr: 'Variable') -> Any:
+        pass
+
 class Expr(ABC):
     @abstractmethod
     def accept(self, visitor: VisitorExpr) -> Any:
         pass
+
+@dataclass(frozen=True)
+class Assign(Expr):
+    name: Token
+    value: Expr
+
+    def accept(self, visitor: VisitorExpr) -> Any:
+        return visitor.visit_assign_expr(self)
 
 @dataclass(frozen=True)
 class Binary(Expr):
@@ -55,4 +71,11 @@ class Unary(Expr):
 
     def accept(self, visitor: VisitorExpr) -> Any:
         return visitor.visit_unary_expr(self)
+
+@dataclass(frozen=True)
+class Variable(Expr):
+    name: Token
+
+    def accept(self, visitor: VisitorExpr) -> Any:
+        return visitor.visit_variable_expr(self)
 

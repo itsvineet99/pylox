@@ -3,9 +3,13 @@ from stmt import *
 from token_type import TokenType
 from lox_runtime_error import LoxRuntimeError
 from error_handler import Lox
+from environment import Environment
 
 
-class Interpretor(VisitorExpr, VisitorStmt):
+class Interpreter(VisitorExpr, VisitorStmt):
+    def __init__(self):
+        super().__init__()
+        self.environment = Environment()
 
     def visit_literal_expr(self, expr: Literal):
         return expr.value
@@ -85,6 +89,24 @@ class Interpretor(VisitorExpr, VisitorStmt):
         value = self.evaluate(stmt.expression)
         print(self.stringify(value))
 
+    def visit_var_stmt(self, stmt):
+        value = None
+        if stmt.initializer is not None:
+            value = self.evaluate(stmt.initializer)
+        self.environment.define(stmt.name.lexeme, value)
+        return None
+    
+    def visit_variable_expr(self, expr):
+        return self.environment.get(expr.name)
+    
+    def visit_assign_expr(self, expr):
+        value = self.evaluate(expr.value)
+        self.environment.assign(expr.name, value)
+        return value
+    
+    def visit_block_stmt(self, stmt):
+        self.execute_block(stmt.statements, Environment(self.environment))
+        return None
     
     # this is a helper method which simply sends the expression back into the
     # interpreter’s visitor implementation:
@@ -128,6 +150,18 @@ class Interpretor(VisitorExpr, VisitorStmt):
     
     def execute(self, stmt: Stmt):
         stmt.accept(self)
+
+    def execute_block(self, statements, environment):
+        previous = self.environment
+        try:
+            self.environment = environment
+
+            for statement in statements:
+                self.execute(statement)
+            
+        finally:
+            self.environment = previous
+
 
     # API to use by other programs.
     def interpret(self, statements):

@@ -5,10 +5,10 @@ from lox_scanner import Scanner
 from parser import Parser
 from ast_printer import AstPrinter
 from error_handler import Lox
-from interpretor import Interpretor
+from interpreter import Interpreter
 
 # initializing interpretor globally so we can use the same object, when each REPL loop resets.
-interpretor = Interpretor()
+interpreter = Interpreter()
 
 # interprete from file
 def run_file(path):
@@ -49,13 +49,15 @@ def run_prompt():
 def run(source):
     scanner = Scanner(source)
     tokens = scanner.scan_tokens()
+    # for token in tokens: # this is to see how tokenizer works.
+    #     print(token)
     parser = Parser(tokens)
     statements = parser.parse()
 
     if Lox.had_error:
         return
     
-    interpretor.interpret(statements)
+    interpreter.interpret(statements)
 
 def main():
     args = sys.argv[1:] # argv[0] is script name so we ignore it
