@@ -65,6 +65,7 @@ def main():
             "Expression : expression Expr",
             "If         : condition Expr, then_branch Stmt, else_branch Stmt",
             "Print      : expression Expr",
+            "While      : condition Expr, body Stmt",
             "Var        : name Token, initializer Expr"
         ])
 

@@ -13,7 +13,7 @@ class Interpreter(VisitorExpr, VisitorStmt):
 
     def visit_literal_expr(self, expr: Literal):
         return expr.value
-    if (2 < 1 or 3 > 2) print "yes"; else print("no");
+    
     def visit_logical_expr(self, expr):
         left = self.evaluate(expr.left)
 
@@ -115,6 +115,11 @@ class Interpreter(VisitorExpr, VisitorStmt):
         if stmt.initializer is not None:
             value = self.evaluate(stmt.initializer)
         self.environment.define(stmt.name.lexeme, value)
+        return None
+    
+    def visit_while_stmt(self, stmt):
+        while(self.is_truthy(self.evaluate(stmt.condition))):
+            self.execute(stmt.body)
         return None
     
     def visit_variable_expr(self, expr):
