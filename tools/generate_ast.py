@@ -55,15 +55,17 @@ def main():
                    "Binary   : left Expr, operator Token, right Expr",
                    "Grouping : expression Expr",
                    "Literal  : value Any",
+                   "Logical  : left Expr, operator Token, right Expr",
                    "Unary    : operator Token, right Expr",
                    "Variable : name Token"
                    ])
 
         define_ast(output_dir, "Stmt", [
-            "Block : statements list[Stmt]",
+            "Block      : statements list[Stmt]",
             "Expression : expression Expr",
+            "If         : condition Expr, then_branch Stmt, else_branch Stmt",
             "Print      : expression Expr",
-            "Var : name Token, initializer Expr"
+            "Var        : name Token, initializer Expr"
         ])
 
 if __name__ == "__main__": 

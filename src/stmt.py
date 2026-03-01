@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Any
 from lox_token import Token
-from Expr import *
+from Expr import * # manually add this line
 
 class VisitorStmt(ABC):
     @abstractmethod
@@ -11,6 +11,10 @@ class VisitorStmt(ABC):
 
     @abstractmethod
     def visit_expression_stmt(self, stmt: 'Expression') -> Any:
+        pass
+
+    @abstractmethod
+    def visit_if_stmt(self, stmt: 'If') -> Any:
         pass
 
     @abstractmethod
@@ -39,6 +43,15 @@ class Expression(Stmt):
 
     def accept(self, visitor: VisitorStmt) -> Any:
         return visitor.visit_expression_stmt(self)
+
+@dataclass(frozen=True)
+class If(Stmt):
+    condition: Expr
+    then_branch: Stmt
+    else_branch: Stmt
+
+    def accept(self, visitor: VisitorStmt) -> Any:
+        return visitor.visit_if_stmt(self)
 
 @dataclass(frozen=True)
 class Print(Stmt):

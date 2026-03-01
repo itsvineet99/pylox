@@ -26,7 +26,7 @@ class Parser:
         return self.assignment()
     
     def assignment(self):
-        expr = self.equality()
+        expr = self.or_()
 
         if self.match(TokenType.EQUAL):
             equals = self.previous()
@@ -36,6 +36,26 @@ class Parser:
                 return Assign(name, value)
         
             self.error(equals, "Invalid assignment target.")
+        return expr
+    
+    def or_(self):
+        expr = self.and_()
+
+        while self.match(TokenType.OR):
+            operator = self.previous()
+            right = self.and_()
+            expr = Logical(expr, operator, right)
+
+        return expr
+
+    def and_(self):
+        expr = self.equality()
+
+        while self.match(TokenType.AND):
+            operator = self.previous()
+            right = self.equality()
+            expr = Logical(expr, operator, right)
+
         return expr
     
     def equality(self):
@@ -158,6 +178,8 @@ class Parser:
             self.advance()
 
     def statement(self):
+        if self.match(TokenType.IF):
+            return self.if_statement()
         if self.match(TokenType.PRINT):
             return self.print_statement()
         elif self.match(TokenType.LEFT_BRACE):
@@ -206,6 +228,18 @@ class Parser:
 
         self.consume(TokenType.RIGHT_BRACE, "Expect '}' after block.")
         return statements
+    
+    def if_statement(self):
+        self.consume(TokenType.LEFT_PAREN, "Expect '(' after 'if'.")
+        condition = self.expression()
+        self.consume(TokenType.RIGHT_PAREN, "Expect ')' after if condition.")
+
+        then_branch = self.statement()
+        else_branch = None
+        if self.match(TokenType.ELSE):
+            else_branch = self.statement()
+
+        return If(condition, then_branch, else_branch)
     
     # a parse method to use in REPL so we can easily evaluate raw expressions.
     def parse_repl(self):

@@ -21,6 +21,10 @@ class VisitorExpr(ABC):
         pass
 
     @abstractmethod
+    def visit_logical_expr(self, expr: 'Logical') -> Any:
+        pass
+
+    @abstractmethod
     def visit_unary_expr(self, expr: 'Unary') -> Any:
         pass
 
@@ -63,6 +67,15 @@ class Literal(Expr):
 
     def accept(self, visitor: VisitorExpr) -> Any:
         return visitor.visit_literal_expr(self)
+
+@dataclass(frozen=True)
+class Logical(Expr):
+    left: Expr
+    operator: Token
+    right: Expr
+
+    def accept(self, visitor: VisitorExpr) -> Any:
+        return visitor.visit_logical_expr(self)
 
 @dataclass(frozen=True)
 class Unary(Expr):

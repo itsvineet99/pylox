@@ -13,6 +13,19 @@ class Interpreter(VisitorExpr, VisitorStmt):
 
     def visit_literal_expr(self, expr: Literal):
         return expr.value
+    if (2 < 1 or 3 > 2) print "yes"; else print("no");
+    def visit_logical_expr(self, expr):
+        left = self.evaluate(expr.left)
+
+        if expr.operator.token_type == TokenType.OR:
+            if self.is_truthy(left):
+                return left
+        else:
+            if not self.is_truthy(left):
+                return left
+        
+        return self.evaluate(expr.right)
+
     
     def visit_grouping_expr(self, expr: Grouping):
         return self.evaluate(expr.expression)
@@ -83,6 +96,14 @@ class Interpreter(VisitorExpr, VisitorStmt):
 
     def visit_expression_stmt(self, stmt) -> None:
         self.evaluate(stmt.expression)
+        return None
+    
+    def visit_if_stmt(self, stmt):
+        if self.is_truthy(self.evaluate(stmt.condition)):
+            self.execute(stmt.then_branch)
+        elif stmt.else_branch is not None:
+            self.execute(stmt.else_branch)
+        
         return None
     
     def visit_print_stmt(self, stmt) -> None:
