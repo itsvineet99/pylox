@@ -4,12 +4,15 @@ from Expr import *
 from stmt import *
 from error_handler import Lox
 
+class ParseError(RuntimeError):
+    pass
 
 class Parser:
     def __init__(self, tokens: list[Token]):
         self.tokens = tokens
 
         self.current = 0
+        self.loop_depth = 0 # to keep the track of scope
 
         # allowing REPL to execute expressions directly
         self.allow_expr = False
@@ -182,6 +185,8 @@ class Parser:
             return self.for_statement()
         if self.match(TokenType.IF):
             return self.if_statement()
+        if self.match(TokenType.BREAK):
+            return self.break_statement()
         if self.match(TokenType.PRINT):
             return self.print_statement()
         if self.match(TokenType.WHILE):
@@ -211,25 +216,27 @@ class Parser:
             increment = self.expression()
         self.consume(TokenType.RIGHT_PAREN, "Expect ')' after for clauses.")
 
-        body = self.statement()
+        try:
+            self.loop_depth += 1
+            body = self.statement()
+            if increment is not None:
+                body = Block(
+                    [body, Expression(increment)]
+                )
+            
+            if condition is None:
+                condition = Literal(True)
+            body = While(condition, body)
 
-        if increment is not None:
-            body = Block(
-                [body, Expression(increment)]
-            )
+            if initializer is not None:
+                body = Block(
+                    [initializer, body]
+                )
+
+            return body
         
-        if condition is None:
-            condition = Literal(True)
-        body = While(condition, body)
-
-        if initializer is not None:
-            body = Block(
-                [initializer, body]
-            )
-
-
-
-        return body
+        finally:
+            self.loop_depth -= 1
 
     def print_statement(self):
         value = self.expression()
@@ -268,9 +275,13 @@ class Parser:
         self.consume(TokenType.LEFT_PAREN, "Expect '(' after 'while'.")
         condition = self.expression()
         self.consume(TokenType.RIGHT_PAREN, "Expect ')' after condition.")
-        body = self.statement()
-
-        return While(condition, body)
+            
+        try:    
+            self.loop_depth += 1
+            body = self.statement()
+            return While(condition, body)
+        finally:
+            self.loop_depth -= 1
 
     def block(self):
         statements = []
@@ -293,6 +304,12 @@ class Parser:
 
         return If(condition, then_branch, else_branch)
     
+    def break_statement(self):
+        if self.loop_depth == 0:
+            self.error(self.previous(), "Must be inside a loop to use 'break'.")
+        self.consume(TokenType.SEMICOLON, "Expect ';' after 'break'.")
+        return Break()
+    
     # a parse method to use in REPL so we can easily evaluate raw expressions.
     def parse_repl(self):
         self.allow_expr = True
@@ -306,6 +323,3 @@ class Parser:
             self.allow_expr = False
         
         return statements
-
-class ParseError(RuntimeError):
-    pass

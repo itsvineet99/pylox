@@ -1,0 +1,3 @@
+var a = "hello";
+break; // should raise an error.
+print a;

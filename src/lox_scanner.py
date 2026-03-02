@@ -4,22 +4,23 @@ from error_handler import Lox
 
 # all keywords in lox
 KEYWORDS = {
-    "and":    TokenType.AND,
-    "class":  TokenType.CLASS,
-    "else":   TokenType.ELSE,
-    "false":  TokenType.FALSE,
-    "for":    TokenType.FOR,
-    "fun":    TokenType.FUN,
-    "if":     TokenType.IF,
-    "nil":    TokenType.NIL,
-    "or":     TokenType.OR,
-    "print":  TokenType.PRINT,
+    "and"   :    TokenType.AND,
+    "break" :  TokenType.BREAK,
+    "class" :  TokenType.CLASS,
+    "else"  :   TokenType.ELSE,
+    "false" :  TokenType.FALSE,
+    "for"   :    TokenType.FOR,
+    "fun"   :    TokenType.FUN,
+    "if"    :     TokenType.IF,
+    "nil"   :    TokenType.NIL,
+    "or"    :     TokenType.OR,
+    "print" :  TokenType.PRINT,
     "return": TokenType.RETURN,
-    "super":  TokenType.SUPER,
-    "this":   TokenType.THIS,
-    "true":   TokenType.TRUE,
-    "var":    TokenType.VAR,
-    "while":  TokenType.WHILE
+    "super" :  TokenType.SUPER,
+    "this"  :   TokenType.THIS,
+    "true"  :   TokenType.TRUE,
+    "var"   :    TokenType.VAR,
+    "while" :  TokenType.WHILE
 }
 
 class Scanner:

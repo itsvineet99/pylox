@@ -10,6 +10,10 @@ class VisitorStmt(ABC):
         pass
 
     @abstractmethod
+    def visit_break_stmt(self, stmt: 'Break') -> Any:
+        pass
+
+    @abstractmethod
     def visit_expression_stmt(self, stmt: 'Expression') -> Any:
         pass
 
@@ -40,6 +44,12 @@ class Block(Stmt):
 
     def accept(self, visitor: VisitorStmt) -> Any:
         return visitor.visit_block_stmt(self)
+
+@dataclass(frozen=True)
+class Break(Stmt):
+
+    def accept(self, visitor: VisitorStmt) -> Any:
+        return visitor.visit_break_stmt(self)
 
 @dataclass(frozen=True)
 class Expression(Stmt):

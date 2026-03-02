@@ -5,6 +5,8 @@ from lox_runtime_error import LoxRuntimeError
 from error_handler import Lox
 from environment import Environment
 
+class BreakError(RuntimeError):
+    pass
 
 class Interpreter(VisitorExpr, VisitorStmt):
     def __init__(self):
@@ -106,6 +108,9 @@ class Interpreter(VisitorExpr, VisitorStmt):
         
         return None
     
+    def visit_break_stmt(self, stmt):
+        raise BreakError()
+    
     def visit_print_stmt(self, stmt) -> None:
         value = self.evaluate(stmt.expression)
         print(self.stringify(value))
@@ -118,8 +123,11 @@ class Interpreter(VisitorExpr, VisitorStmt):
         return None
     
     def visit_while_stmt(self, stmt):
-        while(self.is_truthy(self.evaluate(stmt.condition))):
-            self.execute(stmt.body)
+        try:
+            while(self.is_truthy(self.evaluate(stmt.condition))):
+                self.execute(stmt.body)
+        except BreakError:
+            pass
         return None
     
     def visit_variable_expr(self, expr):

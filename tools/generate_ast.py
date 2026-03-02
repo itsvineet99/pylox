@@ -24,7 +24,11 @@ def define_type(file, base_name, class_name, field_list):
     file.write("@dataclass(frozen=True)\n")
     file.write(f"class {class_name}({base_name}):\n")
 
-    fields = [f.strip() for f in field_list.split(",")]
+    if not field_list:
+        fields = []
+    else:
+        fields = [f.strip() for f in field_list.split(",")]
+        
     for field in fields:
         name = field.split(" ")[0]
         typ = field.split(" ")[1]
@@ -62,6 +66,7 @@ def main():
 
         define_ast(output_dir, "Stmt", [
             "Block      : statements list[Stmt]",
+            "Break      : ",
             "Expression : expression Expr",
             "If         : condition Expr, then_branch Stmt, else_branch Stmt",
             "Print      : expression Expr",
