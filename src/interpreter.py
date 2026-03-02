@@ -1,17 +1,37 @@
+import time
+from abc import ABC, abstractmethod
 from Expr import *
 from stmt import *
 from token_type import TokenType
 from lox_runtime_error import LoxRuntimeError
+from return_error import ReturnError
 from error_handler import Lox
 from environment import Environment
+from lox_function import LoxFunction, LoxCallable
+
+
+class Clock(LoxCallable):
+    def arity(self):
+        return 0
+    
+    def call(self, interpreter, arguments):
+        return time.time()
+    
+    def __str__(self):
+        return "<native fn>"
+
 
 class BreakError(RuntimeError):
     pass
 
 class Interpreter(VisitorExpr, VisitorStmt):
     def __init__(self):
-        super().__init__()
-        self.environment = Environment()
+        # permanent global scope
+        self.globals = Environment()
+        # the active environment that tracks our current scope
+        self.environment = self.globals
+        # defining native functions
+        self.globals.define("clock", Clock())
 
     def visit_literal_expr(self, expr: Literal):
         return expr.value
@@ -96,6 +116,22 @@ class Interpreter(VisitorExpr, VisitorStmt):
                 self.check_number_operands(expr.operator, left, right)
                 return float(left) * float(right)
 
+    def visit_call_expr(self, expr):
+        callee = self.evaluate(expr.callee)
+
+        arguments = []
+        for argument in expr.arguments:
+            arguments.append(self.evaluate(argument))
+
+        if not isinstance(callee, LoxCallable):
+            raise LoxRuntimeError(expr.paren, "Can only call functions and classes.")
+        
+        function = callee
+        if len(arguments) != function.arity():
+            raise LoxRuntimeError(expr.paren, f"Expected {function.arity()} arguments but got {len(arguments)}.")
+        
+        return function.call(self, arguments)
+    
     def visit_expression_stmt(self, stmt) -> None:
         self.evaluate(stmt.expression)
         return None
@@ -141,6 +177,18 @@ class Interpreter(VisitorExpr, VisitorStmt):
     def visit_block_stmt(self, stmt):
         self.execute_block(stmt.statements, Environment(self.environment))
         return None
+    
+    def visit_function_stmt(self, stmt):
+        func = LoxFunction(stmt, self.environment)
+        self.environment.define(stmt.name.lexeme, func)
+        return None
+    
+    def visit_return_stmt(self, stmt):
+        value = None
+        if stmt.value is not None:
+            value = self.evaluate(stmt.value)
+
+        raise ReturnError(value)
     
     # this is a helper method which simply sends the expression back into the
     # interpreter’s visitor implementation:

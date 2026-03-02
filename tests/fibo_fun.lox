@@ -1,0 +1,15 @@
+fun fib(n) {
+  if (n <= 1) return n;
+  return fib(n - 2) + fib(n - 1);
+}
+
+var start = clock();
+
+// Print the first 20 Fibonacci numbers
+for (var i = 0; i < 20; i = i + 1) {
+  print fib(i);
+}
+
+var end = clock();
+print "Time taken in seconds:";
+print end - start;

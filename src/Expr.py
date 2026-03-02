@@ -13,6 +13,10 @@ class VisitorExpr(ABC):
         pass
 
     @abstractmethod
+    def visit_call_expr(self, expr: 'Call') -> Any:
+        pass
+
+    @abstractmethod
     def visit_grouping_expr(self, expr: 'Grouping') -> Any:
         pass
 
@@ -53,6 +57,15 @@ class Binary(Expr):
 
     def accept(self, visitor: VisitorExpr) -> Any:
         return visitor.visit_binary_expr(self)
+
+@dataclass(frozen=True)
+class Call(Expr):
+    callee: Expr
+    paren: Token
+    arguments: list[Expr]
+
+    def accept(self, visitor: VisitorExpr) -> Any:
+        return visitor.visit_call_expr(self)
 
 @dataclass(frozen=True)
 class Grouping(Expr):

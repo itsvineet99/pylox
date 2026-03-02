@@ -110,8 +110,31 @@ class Parser:
             operator = self.previous()
             right = self.unary()
             return Unary(operator, right)
-        return self.primary()
+        return self.call()
         
+    def finish_call(self, callee):
+        arguments = []
+        if not self.check(TokenType.RIGHT_PAREN):
+            arguments.append(self.expression())
+            while self.match(TokenType.COMMA):
+                if len(arguments) >= 255:
+                    self.error(self.peek(), "Can't have more than 255 arguments.")
+                arguments.append(self.expression())
+
+        paren = self.consume(TokenType.RIGHT_PAREN, "Expect ')' after arguments.")
+        return Call(callee, paren, arguments)
+
+    def call(self):
+        expr = self.primary()
+
+        while(True):
+            if self.match(TokenType.LEFT_PAREN):
+                expr = self.finish_call(expr)
+            else:
+                break
+        
+        return expr
+    
     def primary(self):
         if self.match(TokenType.FALSE):
             return Literal(False)
@@ -171,7 +194,7 @@ class Parser:
         while not self.is_at_end():
             if self.previous().token_type == TokenType.SEMICOLON:
                 return
-            if self.peek().type in (
+            if self.peek().token_type in (
                 TokenType.CLASS, TokenType.FUN, TokenType.VAR, 
                 TokenType.FOR, TokenType.IF, TokenType.WHILE, 
                 TokenType.PRINT, TokenType.RETURN
@@ -189,6 +212,8 @@ class Parser:
             return self.break_statement()
         if self.match(TokenType.PRINT):
             return self.print_statement()
+        if self.match(TokenType.RETURN):
+            return self.return_statement()
         if self.match(TokenType.WHILE):
             return self.while_statement()
         elif self.match(TokenType.LEFT_BRACE):
@@ -242,7 +267,16 @@ class Parser:
         value = self.expression()
         self.consume(TokenType.SEMICOLON, "Expect ';' after value.")
         return Print(value)
+    
+    def return_statement(self):
+        keyword = self.previous()
+        value = None
+        if not self.check(TokenType.SEMICOLON):
+            value = self.expression()
 
+        self.consume(TokenType.SEMICOLON,  "Expect ';' after return value.")
+        return Return(keyword, value)
+    
     def expression_statement(self):
         expr = self.expression()
         # for evaluating raw expressions
@@ -252,8 +286,29 @@ class Parser:
             self.consume(TokenType.SEMICOLON, "Expect ';' after expression.")
         return Expression(expr)
     
+    def function_(self, kind):
+        name = self.consume(TokenType.IDENTIFIER, f"expect {kind} name.")
+        self.consume(TokenType.LEFT_PAREN, f"Expect '(' after {kind} name.")
+        parameters = []
+
+        if not self.check(TokenType.RIGHT_PAREN):
+            parameters.append(self.consume(TokenType.IDENTIFIER, "Expect parameter name."))
+            
+            while(self.match(TokenType.COMMA)):
+                if len(parameters) >= 255:
+                    self.error(self.peek(), "Can't have more than 255 parameters.")
+
+                parameters.append(self.consume(TokenType.IDENTIFIER, "Expect parameter name."))
+        self.consume(TokenType.RIGHT_PAREN, "Expect ')' after parameters.")
+
+        self.consume(TokenType.LEFT_BRACE, "Expect '{' before " + kind + " body.")
+        body = self.block()
+        return Function(name, parameters, body)
+    
     def declaration(self):
         try:
+            if self.match(TokenType.FUN):
+                return self.function_("function")
             if self.match(TokenType.VAR):
                 return self.var_declaration()
             return self.statement()

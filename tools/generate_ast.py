@@ -28,7 +28,7 @@ def define_type(file, base_name, class_name, field_list):
         fields = []
     else:
         fields = [f.strip() for f in field_list.split(",")]
-        
+
     for field in fields:
         name = field.split(" ")[0]
         typ = field.split(" ")[1]
@@ -57,21 +57,24 @@ def main():
         define_ast(output_dir, "Expr", [
                    "Assign   : name Token, value Expr",
                    "Binary   : left Expr, operator Token, right Expr",
+                   "Call     : callee Expr, paren Token, arguments list[Expr]",
                    "Grouping : expression Expr",
                    "Literal  : value Any",
                    "Logical  : left Expr, operator Token, right Expr",
                    "Unary    : operator Token, right Expr",
-                   "Variable : name Token"
+                   "Variable : name Token",
                    ])
 
         define_ast(output_dir, "Stmt", [
             "Block      : statements list[Stmt]",
             "Break      : ",
             "Expression : expression Expr",
+            "Function   : name Token, params list[Token], body list[Stmt]",
             "If         : condition Expr, then_branch Stmt, else_branch Stmt",
             "Print      : expression Expr",
+            "Return     : keyword Token, value Expr",
+            "Var        : name Token, initializer Expr",
             "While      : condition Expr, body Stmt",
-            "Var        : name Token, initializer Expr"
         ])
 
 if __name__ == "__main__": 
