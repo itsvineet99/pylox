@@ -1,5 +1,4 @@
 import time
-from abc import ABC, abstractmethod
 from Expr import *
 from stmt import *
 from token_type import TokenType
@@ -10,6 +9,7 @@ from environment import Environment
 from lox_function import LoxFunction, LoxCallable
 
 
+# native function 
 class Clock(LoxCallable):
     def arity(self):
         return 0
@@ -32,6 +32,30 @@ class Interpreter(VisitorExpr, VisitorStmt):
         self.environment = self.globals
         # defining native functions
         self.globals.define("clock", Clock())
+
+    # API to use by other programs.
+    def interpret(self, syntax):
+        try:
+            if isinstance(syntax, list):
+                # when we are giving input as a list of statements 
+                for statement in syntax:
+                    self.execute(statement)
+            else:
+                # when we are giving input as expression (REPL interactive execution)
+                value = self.evaluate(syntax)
+                return self.stringify(value)
+                
+        except LoxRuntimeError as error:
+            Lox.runtime_error(error)
+            return None
+        
+    ################################
+    ### visit methods / evaluating 
+    ################################
+
+    ##############
+    ## expressions 
+    ##############
 
     def visit_literal_expr(self, expr: Literal):
         return expr.value
@@ -71,7 +95,7 @@ class Interpreter(VisitorExpr, VisitorStmt):
 
         match expr.operator.token_type:
             case TokenType.GREATER:
-                # comapres string by their length
+                # comapares string by their length
                 if isinstance(left, str) and isinstance(right, str):
                     return len(left) > len(right)
                 self.check_number_operands(expr.operator, left, right)
@@ -132,6 +156,19 @@ class Interpreter(VisitorExpr, VisitorStmt):
         
         return function.call(self, arguments)
     
+    def visit_variable_expr(self, expr):
+        return self.environment.get(expr.name)
+    
+    def visit_assign_expr(self, expr):
+        value = self.evaluate(expr.value)
+        self.environment.assign(expr.name, value)
+        return value
+    
+    
+    #############
+    ## statement
+    #############
+    
     def visit_expression_stmt(self, stmt) -> None:
         self.evaluate(stmt.expression)
         return None
@@ -166,14 +203,6 @@ class Interpreter(VisitorExpr, VisitorStmt):
             pass
         return None
     
-    def visit_variable_expr(self, expr):
-        return self.environment.get(expr.name)
-    
-    def visit_assign_expr(self, expr):
-        value = self.evaluate(expr.value)
-        self.environment.assign(expr.name, value)
-        return value
-    
     def visit_block_stmt(self, stmt):
         self.execute_block(stmt.statements, Environment(self.environment))
         return None
@@ -190,6 +219,10 @@ class Interpreter(VisitorExpr, VisitorStmt):
 
         raise ReturnError(value)
     
+    ####################
+    ## helper functions
+    ####################
+
     # this is a helper method which simply sends the expression back into the
     # interpreter’s visitor implementation:
     def evaluate(self, expr):
@@ -243,21 +276,4 @@ class Interpreter(VisitorExpr, VisitorStmt):
             
         finally:
             self.environment = previous
-
-
-    # API to use by other programs.
-    def interpret(self, syntax):
-        try:
-            if isinstance(syntax, list):
-                # when we are giving input as list of statements 
-                for statement in syntax:
-                    self.execute(statement)
-            else:
-                # when we are giving input as expression (REPL interactive execution)
-                value = self.evaluate(syntax)
-                return self.stringify(value)
-                
-        except LoxRuntimeError as error:
-            Lox.runtime_error(error)
-            return None
-            
+        
