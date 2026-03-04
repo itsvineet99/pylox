@@ -27,11 +27,13 @@ class BreakError(RuntimeError):
 class Interpreter(VisitorExpr, VisitorStmt):
     def __init__(self):
         # permanent global scope
-        self.globals = Environment()
+        self.globals_ = Environment()
         # the active environment that tracks our current scope
-        self.environment = self.globals
+        self.environment = self.globals_
         # defining native functions
-        self.globals.define("clock", Clock())
+        self.globals_.define("clock", Clock())
+        # number of environments between the scope where variable is being used and the scope where its declared.
+        self.locals_ = {} # _ cause locals keyword exists in python alr.
 
     # API to use by other programs.
     def interpret(self, syntax):
@@ -157,11 +159,16 @@ class Interpreter(VisitorExpr, VisitorStmt):
         return function.call(self, arguments)
     
     def visit_variable_expr(self, expr):
-        return self.environment.get(expr.name)
+        return self.lookup_variable(expr.name, expr)
     
     def visit_assign_expr(self, expr):
         value = self.evaluate(expr.value)
-        self.environment.assign(expr.name, value)
+
+        distance = self.locals_.get(expr)
+        if distance is not None:
+            self.environment.assign_at(distance, expr.name, value)
+        else:
+            self.globals_.assign(expr.name, value)
         return value
     
     
@@ -277,3 +284,12 @@ class Interpreter(VisitorExpr, VisitorStmt):
         finally:
             self.environment = previous
         
+    def resolve(self, expr, depth):
+        self.locals_[expr] = depth
+
+    def lookup_variable(self, name, expr):
+        distance = self.locals_[expr]
+        if distance is not None:
+            return self.environment.get_at(distance, name.lexeme)
+        else:
+            return self.globals_.get(name)

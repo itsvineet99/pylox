@@ -3,8 +3,9 @@ from pathlib import Path
 
 from lox_scanner import Scanner
 from parser import Parser
-from error_handler import Lox
 from interpreter import Interpreter
+from resolver import Resolver
+from error_handler import Lox
 from Expr import *
 
 # initializing interpretor globally so we can use the same object, when each REPL loop resets.
@@ -67,6 +68,12 @@ def run(source):
     #     print(token)
     parser = Parser(tokens)
     statements = parser.parse()
+
+    if Lox.had_error:
+        return
+    
+    resolver = Resolver(interpreter)
+    resolver.resolve(statements)
 
     if Lox.had_error:
         return
