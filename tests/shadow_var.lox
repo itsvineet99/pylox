@@ -1,0 +1,8 @@
+var a = 10;
+
+fun block(){
+    var a = 12; 
+    print a;
+    }
+
+block();

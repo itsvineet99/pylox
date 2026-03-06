@@ -32,7 +32,7 @@ class Interpreter(VisitorExpr, VisitorStmt):
         self.environment = self.globals_
         # defining native functions
         self.globals_.define("clock", Clock())
-        # number of environments between the scope where variable is being used and the scope where its declared.
+        # stores expr(variable) and the number which indicates where this variable was declared 
         self.locals_ = {} # _ cause locals keyword exists in python alr.
 
     # API to use by other programs.
@@ -288,7 +288,7 @@ class Interpreter(VisitorExpr, VisitorStmt):
         self.locals_[expr] = depth
 
     def lookup_variable(self, name, expr):
-        distance = self.locals_[expr]
+        distance = self.locals_.get(expr) # didn't know that dict has .get syntax too TT
         if distance is not None:
             return self.environment.get_at(distance, name.lexeme)
         else:

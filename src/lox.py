@@ -45,6 +45,9 @@ def run_prompt():
             parser = Parser(tokens)
             syntax = parser.parse_repl()
 
+            resolver = Resolver(interpreter)
+            resolver.resolve(syntax)
+
             if Lox.had_error:
                 continue # ignore errors
             

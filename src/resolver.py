@@ -15,45 +15,23 @@ class Resolver(VisitorExpr, VisitorStmt):
         self.scopes = []
         self.current_function = FunctionType.NONE
 
+    ############################
+    ## visit methods that resolve 
+    ## variables directly 
+    #############################
+
     def visit_block_stmt(self, stmt):
         self.begin_scope()
         self.resolve(stmt.statements)
         self.end_scope()
 
-    def begin_scope(self):
-        self.scopes.append({})
-
-    def end_scope(self):
-        self.scopes.pop()
-
-    def resolve(self, syntax):
-        if isinstance(syntax, list):
-            for statement in syntax:
-                self.resolve(statement)
-        if isinstance(syntax, Stmt):
-            syntax.accept(self)
-        if isinstance(syntax, Expr):
-            syntax.accept(self)
-
-    def visit_var_stmt(self, stmt):
+    # variable declaration
+    def visit_var_stmt(self, stmt): 
         self.declare(stmt.name)
         if stmt.initializer is not None:
             self.resolve(stmt.initializer)
         self.define(stmt.name)
         return None
-    
-    def declare(self, name):
-        scope = self.scopes[-1]
-        
-        if name.lexeme in scope:
-            Lox.error(name, "Already variable with this name in this scope.")
-
-        scope[name.lexeme] = False
-
-    def define(self, name):
-        if not self.scopes:
-            return
-        self.scopes[-1].append(name.lexeme, True)
     
     def visit_variable_expr(self, expr):
         if self.scopes and self.scopes[-1][expr.name.lexeme] is False:
@@ -61,20 +39,13 @@ class Resolver(VisitorExpr, VisitorStmt):
         
         self.resolve_local(expr, expr.name)
         return None
-    
-    def resolve_local(self, expr, name):
-        # reversed() walks the list backwards.
-        for distance, scope in enumerate(reversed(self.scopes)):
-            if name.lexeme in scope:
-                self.interpreter.resolve(expr, distance)
-                return
 
     def visit_assign_expr(self, expr):
         self.resolve(expr.value)
         self.resolve_local(expr, expr.name)
         return None
     
-    # function
+    # function declaration
     def visit_function_stmt(self, stmt):
         self.declare(stmt.name)
         self.define(stmt.name)
@@ -82,21 +53,10 @@ class Resolver(VisitorExpr, VisitorStmt):
         self.resolve_function(stmt, FunctionType.FUNCTION)
         return None
     
-    def resolve_function(self, func, type):
-        enclosing_function = self.current_function
-        self.current_function = type
-
-        self.begin_scope()
-        for param in func.params:
-            self.declare(param)
-            self.define(param)
-
-        self.resolve(func.body)
-        self.end_scope()
-
-        self.current_function = enclosing_function
-
-    # boring code
+    ############################
+    ## visit methods that don't 
+    ## resolve variables directly 
+    #############################
 
     def visit_expression_stmt(self, stmt):
         self.resolve(stmt.expression)
@@ -116,7 +76,7 @@ class Resolver(VisitorExpr, VisitorStmt):
     def visit_return_stmt(self, stmt):
         if self.current_function == FunctionType.NONE:
             Lox.error(stmt.keyword, "Can't return from top-level code.")
-            
+
         if stmt.value is not None:
             self.resolve(stmt.value)
         return None
@@ -156,3 +116,59 @@ class Resolver(VisitorExpr, VisitorStmt):
 
     def visit_break_stmt(self, stmt):
         return None
+
+    ############################
+    ## tools / utility functions 
+    ############################
+
+    def begin_scope(self):
+        self.scopes.append({})
+
+    def end_scope(self):
+        self.scopes.pop()
+
+    # keystone method (idk why i called it that)
+    def resolve(self, syntax):
+        if isinstance(syntax, list):
+            for statement in syntax:
+                self.resolve(statement)
+        if isinstance(syntax, Stmt):
+            syntax.accept(self)
+        if isinstance(syntax, Expr):
+            syntax.accept(self)
+
+    def resolve_local(self, expr, name):
+        # reversed() walks the list backwards.
+        for distance, scope in enumerate(reversed(self.scopes)):
+            if name.lexeme in scope:
+                self.interpreter.resolve(expr, distance)
+                return
+
+
+    def resolve_function(self, func, type):
+        enclosing_function = self.current_function
+        self.current_function = type
+
+        self.begin_scope()
+        for param in func.params:
+            self.declare(param)
+            self.define(param)
+
+        self.resolve(func.body)
+        self.end_scope()
+
+        self.current_function = enclosing_function
+
+    def declare(self, name):
+        if not self.scopes:
+            return 
+        
+        scope = self.scopes[-1]
+        if name.lexeme in scope:
+            Lox.error(name, "Already variable with this name in this scope.")
+        scope[name.lexeme] = False
+
+    def define(self, name):
+        if not self.scopes:
+            return
+        self.scopes[-1][name.lexeme] = True
