@@ -7,6 +7,7 @@ from return_error import ReturnError
 from error_handler import Lox
 from environment import Environment
 from lox_function import LoxFunction, LoxCallable
+from lox_class import LoxClass, LoxInstance
 
 
 # native function 
@@ -171,6 +172,25 @@ class Interpreter(VisitorExpr, VisitorStmt):
             self.globals_.assign(expr.name, value)
         return value
     
+    def visit_get_expr(self, expr):
+        obj = self.evaluate(expr.object)
+        if isinstance(obj, LoxInstance):
+            return obj.get(expr.name)
+        raise LoxRuntimeError(expr.name, "Only instances have properties.")
+    
+    def visit_set_expr(self, expr):
+        obj = self.evaluate(expr.object)
+
+        if not isinstance(obj, LoxInstance):
+            raise LoxRuntimeError(expr.name, "Only instances have fields.")
+        
+        value = self.evaluate(expr.value)
+        obj.set(expr.name, value)
+
+        return value
+    
+    def visit_this_expr(self, expr):
+        return self.lookup_variable(expr.keyword, expr)
     
     #############
     ## statement
@@ -215,7 +235,7 @@ class Interpreter(VisitorExpr, VisitorStmt):
         return None
     
     def visit_function_stmt(self, stmt):
-        func = LoxFunction(stmt, self.environment)
+        func = LoxFunction(stmt, self.environment, False)
         self.environment.define(stmt.name.lexeme, func)
         return None
     
@@ -225,6 +245,20 @@ class Interpreter(VisitorExpr, VisitorStmt):
             value = self.evaluate(stmt.value)
 
         raise ReturnError(value)
+    
+    def visit_class_stmt(self, stmt):
+        self.environment.define(stmt.name.lexeme, None)
+        
+        methods = {}
+        for method in stmt.methods:
+            func = LoxFunction(method, self.environment,
+                               method.name.lexeme == "init")
+            methods[method.name.lexeme] = func
+
+        klass = LoxClass(stmt.name.lexeme, methods)
+        self.environment.assign(stmt.name, klass)
+
+        return None
     
     ####################
     ## helper functions

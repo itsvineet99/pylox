@@ -4,15 +4,22 @@ from Expr import VisitorExpr, Expr
 from stmt import VisitorStmt, Stmt
 from error_handler import Lox
 
+class ClassType(Enum):
+    NONE = auto()
+    CLASS = auto()
+
 class FunctionType(Enum):
     NONE = auto()
     FUNCTION = auto()
+    INITIALIZER = auto()
+    METHOD = auto()
 
 
 class Resolver(VisitorExpr, VisitorStmt):
     def __init__(self, interpreter):
         self.interpreter = interpreter
         self.scopes = []
+        self.current_class = ClassType.NONE
         self.current_function = FunctionType.NONE
 
     ############################
@@ -53,6 +60,13 @@ class Resolver(VisitorExpr, VisitorStmt):
         self.resolve_function(stmt, FunctionType.FUNCTION)
         return None
     
+    def visit_this_expr(self, expr):
+        if self.current_class == ClassType.NONE:
+            Lox.error(expr.keyword, "Can't use 'this' outside of class you fucking moron.")
+            return None
+        
+        self.resolve_local(expr, expr.keyword)
+    
     ############################
     ## visit methods that don't 
     ## resolve variables directly 
@@ -78,6 +92,8 @@ class Resolver(VisitorExpr, VisitorStmt):
             Lox.error(stmt.keyword, "Can't return from top-level code.")
 
         if stmt.value is not None:
+            if self.current_function == FunctionType.INITIALIZER:
+                Lox.error(stmt.keyword, "Can't return a value from an initializer.")
             self.resolve(stmt.value)
         return None
 
@@ -115,6 +131,38 @@ class Resolver(VisitorExpr, VisitorStmt):
         return None
 
     def visit_break_stmt(self, stmt):
+        return None
+    
+    def visit_class_stmt(self, stmt):
+        enclosing_class = self.current_class
+        self.current_class = ClassType.CLASS
+
+        self.declare(stmt.name)
+        self.define(stmt.name)
+
+        self.begin_scope()
+        self.scopes[-1]["this"] = True
+
+        for method in stmt.methods:
+            declaration = FunctionType.METHOD
+            if method.name.lexeme == "init":
+                declaration = FunctionType.INITIALIZER
+            self.resolve_function(method, declaration)
+
+        self.end_scope()
+
+        self.current_class = enclosing_class
+        return None
+
+    # getter
+    def visit_get_expr(self, expr):
+        self.resolve(expr.object)
+        return None
+    
+    # setter 
+    def visit_set_expr(self, expr):
+        self.resolve(expr.object)
+        self.resolve(expr.value)
         return None
 
     ############################

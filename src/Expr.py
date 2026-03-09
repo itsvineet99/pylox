@@ -17,6 +17,10 @@ class VisitorExpr(ABC):
         pass
 
     @abstractmethod
+    def visit_get_expr(self, expr: 'Get') -> Any:
+        pass
+
+    @abstractmethod
     def visit_grouping_expr(self, expr: 'Grouping') -> Any:
         pass
 
@@ -26,6 +30,14 @@ class VisitorExpr(ABC):
 
     @abstractmethod
     def visit_logical_expr(self, expr: 'Logical') -> Any:
+        pass
+
+    @abstractmethod
+    def visit_set_expr(self, expr: 'Set') -> Any:
+        pass
+
+    @abstractmethod
+    def visit_this_expr(self, expr: 'This') -> Any:
         pass
 
     @abstractmethod
@@ -68,6 +80,14 @@ class Call(Expr):
         return visitor.visit_call_expr(self)
 
 @dataclass(frozen=True)
+class Get(Expr):
+    object: Expr
+    name: Token
+
+    def accept(self, visitor: VisitorExpr) -> Any:
+        return visitor.visit_get_expr(self)
+
+@dataclass(frozen=True)
 class Grouping(Expr):
     expression: Expr
 
@@ -89,6 +109,22 @@ class Logical(Expr):
 
     def accept(self, visitor: VisitorExpr) -> Any:
         return visitor.visit_logical_expr(self)
+
+@dataclass(frozen=True)
+class Set(Expr):
+    object: Expr
+    name: Token
+    value: Expr
+
+    def accept(self, visitor: VisitorExpr) -> Any:
+        return visitor.visit_set_expr(self)
+
+@dataclass(frozen=True)
+class This(Expr):
+    keyword: Token
+
+    def accept(self, visitor: VisitorExpr) -> Any:
+        return visitor.visit_this_expr(self)
 
 @dataclass(frozen=True)
 class Unary(Expr):
