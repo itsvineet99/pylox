@@ -2,13 +2,17 @@ from lox_function import LoxCallable
 from lox_runtime_error import LoxRuntimeError
 
 class LoxClass(LoxCallable):
-    def __init__(self, name, methods: dict):
+    def __init__(self, name, superclass: 'LoxClass', methods: dict):
         self.name = name
+        self.superclass = superclass
         self.methods = methods
     
     def find_method(self, name):
         if name in self.methods:
             return self.methods.get(name)
+        
+        if self.superclass is not None:
+            return self.superclass.find_method(name)
         return None
     
     def call(self, interpreter, arguments):

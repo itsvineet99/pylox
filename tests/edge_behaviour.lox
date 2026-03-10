@@ -6,4 +6,4 @@ var a = 1;
 
 print a;
 
-// output : 3
+// output : raise an error: Can't read local variable in its own initializer.

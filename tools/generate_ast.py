@@ -63,6 +63,7 @@ def main():
                    "Literal  : value Any",
                    "Logical  : left Expr, operator Token, right Expr",
                    "Set      : object Expr, name Token, value Expr",
+                   "Super    : keyword Token, method Token",
                    "This     : keyword Token",
                    "Unary    : operator Token, right Expr",
                    "Variable : name Token",
@@ -70,8 +71,8 @@ def main():
 
         define_ast(output_dir, "Stmt", [
             "Block      : statements list[Stmt]",
-            "Class      : name Token, methods list['Function']",
             "Break      : ",
+            "Class      : name Token, superclass Variable,methods list['Function']",
             "Expression : expression Expr",
             "Function   : name Token, params list[Token], body list[Stmt]",
             "If         : condition Expr, then_branch Stmt, else_branch Stmt",

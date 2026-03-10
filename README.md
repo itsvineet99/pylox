@@ -2,7 +2,26 @@ jlox is an tree-walk interpreter written in java for custom built language lox. 
 
 in this repository i re-implemnt jlox in python. the purpose of doing so is to learn more about python and what differs it from statistically typed language like java.
 
-how to use this:
+in pylox we implement all the given things:
+- tokens and lexing
+- abstract syntax trees
+- recursive descent parsing
+- prefix and infix expressions
+- runtime representation of objects
+- interpreting code using the Visitor pattern
+- lexical scope
+- environment chains for storing variables
+- control flow
+- functions with parameters
+- closures
+- static variable resolution and error detection
+- classes
+- constructors
+- fields
+- methods
+- and finally inheritance
+
+how to use the interpreter:
 
 ```
 git clone https://github.com/itsvineet99/pylox.git

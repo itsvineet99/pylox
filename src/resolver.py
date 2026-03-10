@@ -7,6 +7,7 @@ from error_handler import Lox
 class ClassType(Enum):
     NONE = auto()
     CLASS = auto()
+    SUBCLASS = auto()
 
 class FunctionType(Enum):
     NONE = auto()
@@ -41,7 +42,7 @@ class Resolver(VisitorExpr, VisitorStmt):
         return None
     
     def visit_variable_expr(self, expr):
-        if self.scopes and self.scopes[-1][expr.name.lexeme] is False:
+        if self.scopes and self.scopes[-1].get(expr.name.lexeme) is False:
             Lox.error(expr.name, "Can't read local variable in its own initializer.")
         
         self.resolve_local(expr, expr.name)
@@ -140,6 +141,18 @@ class Resolver(VisitorExpr, VisitorStmt):
         self.declare(stmt.name)
         self.define(stmt.name)
 
+        # when we try to do this, `class Oops < Oops {}`
+        if stmt.superclass is not None and stmt.name.lexeme == stmt.superclass.name.lexeme:
+            Lox.error(stmt.superclass.name, "A class can't inherit from itself.")
+
+        if stmt.superclass is not None:
+            self.current_class = ClassType.SUBCLASS
+            self.resolve(stmt.superclass)
+
+        if stmt.superclass is not None:
+            self.begin_scope()
+            self.scopes[-1]["super"] = True
+
         self.begin_scope()
         self.scopes[-1]["this"] = True
 
@@ -151,6 +164,8 @@ class Resolver(VisitorExpr, VisitorStmt):
 
         self.end_scope()
 
+        if stmt.superclass is not None:
+            self.end_scope()
         self.current_class = enclosing_class
         return None
 
@@ -164,6 +179,16 @@ class Resolver(VisitorExpr, VisitorStmt):
         self.resolve(expr.object)
         self.resolve(expr.value)
         return None
+    
+    def visit_super_expr(self, expr):
+        if self.current_class == ClassType.NONE:
+            Lox.error(expr.keyword, 
+                      "Can't use 'super' outside of a class.")
+        elif self.current_class != ClassType.SUBCLASS:
+            Lox.error(expr.keyword, 
+                      "Can't use 'super' in a class with no superclass.")
+            
+        self.resolve_local(expr, expr.keyword)
 
     ############################
     ## tools / utility functions 

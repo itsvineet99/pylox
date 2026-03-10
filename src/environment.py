@@ -19,7 +19,7 @@ class Environment:
     
     def ancestor(self, distnace):
         environment = self
-        for i in range(distnace):
+        for _ in range(distnace):
             environment = environment.enclosing
         return environment
 

@@ -10,11 +10,11 @@ class VisitorStmt(ABC):
         pass
 
     @abstractmethod
-    def visit_class_stmt(self, stmt: 'Class') -> Any:
+    def visit_break_stmt(self, stmt: 'Break') -> Any:
         pass
 
     @abstractmethod
-    def visit_break_stmt(self, stmt: 'Break') -> Any:
+    def visit_class_stmt(self, stmt: 'Class') -> Any:
         pass
 
     @abstractmethod
@@ -58,18 +58,19 @@ class Block(Stmt):
         return visitor.visit_block_stmt(self)
 
 @dataclass(frozen=True)
-class Class(Stmt):
-    name: Token
-    methods: list['Function']
-
-    def accept(self, visitor: VisitorStmt) -> Any:
-        return visitor.visit_class_stmt(self)
-
-@dataclass(frozen=True)
 class Break(Stmt):
 
     def accept(self, visitor: VisitorStmt) -> Any:
         return visitor.visit_break_stmt(self)
+
+@dataclass(frozen=True)
+class Class(Stmt):
+    name: Token
+    superclass: Variable
+    methods: list['Function']
+
+    def accept(self, visitor: VisitorStmt) -> Any:
+        return visitor.visit_class_stmt(self)
 
 @dataclass(frozen=True)
 class Expression(Stmt):
