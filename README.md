@@ -38,7 +38,7 @@ this command will interprete the code from a file at given path and print output
 
 visual representation of running lox program using our interpreter:
 
-![interpreter.py](https://i.ibb.co/93vhf5wP/image.png)
+![interpreter.png](image.png)
 
 to use REPL (read–eval–print loop) mode, type given command:
 
