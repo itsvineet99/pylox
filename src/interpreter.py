@@ -165,7 +165,7 @@ class Interpreter(VisitorExpr, VisitorStmt):
     def visit_assign_expr(self, expr):
         value = self.evaluate(expr.value)
 
-        distance = self.locals_.get(expr)
+        distance = self.locals_.get(id(expr))
         if distance is not None:
             self.environment.assign_at(distance, expr.name, value)
         else:
@@ -190,7 +190,7 @@ class Interpreter(VisitorExpr, VisitorStmt):
         return value
     
     def visit_super_expr(self, expr):
-        distance = self.locals_.get(expr)
+        distance = self.locals_.get(id(expr))
 
         superclass = self.environment.get_at(distance, "super")
         obj = self.environment.get_at(distance - 1, "this")
@@ -346,10 +346,10 @@ class Interpreter(VisitorExpr, VisitorStmt):
             self.environment = previous
         
     def resolve(self, expr, depth):
-        self.locals_[expr] = depth
+        self.locals_[id(expr)] = depth
 
     def lookup_variable(self, name, expr):
-        distance = self.locals_.get(expr) # didn't know that dict has .get syntax too TT
+        distance = self.locals_.get(id(expr)) # didn't know that dict has .get syntax too TT
         if distance is not None:
             return self.environment.get_at(distance, name.lexeme)
         else:

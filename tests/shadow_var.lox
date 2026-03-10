@@ -6,3 +6,5 @@ fun block(){
     }
 
 block();
+
+// should print 12.

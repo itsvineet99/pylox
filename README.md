@@ -36,6 +36,10 @@ python lox.py <path_to_source_code>
 ```
 this command will interprete the code from a file at given path and print output on terminal.
 
+visual representation of running lox program using our interpreter:
+
+![interpreter.py](https://i.ibb.co/93vhf5wP/image.png)
+
 to use REPL (read–eval–print loop) mode, type given command:
 
 ```
@@ -54,3 +58,5 @@ print c;
 press ctr+D to quit out of REPL version.
 
 you can use example files from `tests/` repository to see how code is written in lox and to see how pylox interpretes it.
+
+for ease of running all test cases at once you can use `test_script.py` which interpreters all the tests programs and prints output to your terminal.

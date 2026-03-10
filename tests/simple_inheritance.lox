@@ -7,3 +7,5 @@ class Doughnut {
 class BostonCream < Doughnut {}
 
 BostonCream().cook();
+
+// should print: Fry until golden brown.
